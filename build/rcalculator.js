@@ -36605,7 +36605,7 @@ class Application extends React.Component {
       // Calculate the expression
       case '=':
         try {
-          const result = eval(this.state.value);
+          const result = eval(this.state.value.replace(/\^/g, '**'));
           if (this.state.errorFlag) {
             throw "no multiple multiplications";
           }
@@ -36620,6 +36620,12 @@ class Application extends React.Component {
           });
         }
         break;
+      case '**':
+        this.setState({
+          value: this.state.value + '^'
+        });
+        break;
+
       // Any other value we just add to the current value.
       default:
         if (value == '*' && this.state.value[this.state.value.length - 1] == '*') {
