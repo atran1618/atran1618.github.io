@@ -36546,8 +36546,42 @@ var ReactDOM = require('react-dom');
 var Application = require('./components/Application.react');
 ReactDOM.render( /*#__PURE__*/React.createElement(Application, null), document.getElementById('react-application'));
 
-},{"./components/Application.react":18,"react":11,"react-dom":8}],18:[function(require,module,exports){
+},{"./components/Application.react":19,"react":11,"react-dom":8}],18:[function(require,module,exports){
 var React = require('react');
+var answer = {
+  position: 'absolute',
+  top: '-35px',
+  left: '0'
+};
+class Answer extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      ans: ''
+    };
+  }
+  render() {
+    if (this.props.done == 'true') {
+      this.props.off();
+      this.ans = this.props.text;
+      return /*#__PURE__*/React.createElement("p", {
+        style: answer
+      }, this.ans);
+    }
+    if (this.props.done == 'C' || this.props.done == 'error') {
+      return;
+    }
+    return /*#__PURE__*/React.createElement("p", {
+      style: answer
+    }, this.ans);
+  }
+}
+;
+module.exports = Answer;
+
+},{"react":11}],19:[function(require,module,exports){
+var React = require('react');
+var Answer = require('./Answer.react');
 var {
   StyleSheet,
   css
@@ -36567,6 +36601,9 @@ var commonStyle = {
     backgroundColor: '#ddd'
   }
 };
+var answerContainer = {
+  position: 'relative'
+};
 var styles = StyleSheet.create({
   button: {
     ...commonStyle
@@ -36581,9 +36618,15 @@ class Application extends React.Component {
     super();
     this.state = {
       value: "",
-      errorFlag: false
+      errorFlag: false,
+      done: 'false',
+      prevAns: ''
     };
     this.handleClick = this.handleClick.bind(this);
+    this.off = this.off.bind(this);
+  }
+  off() {
+    this.state.done = 'false';
   }
   handleClick(event) {
     const value = event.target.value;
@@ -36598,37 +36641,75 @@ class Application extends React.Component {
       // The value is clear
       case 'C':
         this.setState({
-          value: "",
-          errorFlag: false
+          value: '',
+          errorFlag: false,
+          done: 'C'
         });
         break;
       // Calculate the expression
       case '=':
         try {
-          const result = eval(this.state.value.replace(/\^/g, '**'));
-          if (this.state.errorFlag) {
+          if (this.state.errorFlag == true) {
             throw "no multiple multiplications";
           }
           ;
+          const result = eval(this.state.value.replace(/\^/g, '**').replace(/Ans/g, this.state.prevAns));
           this.setState({
             value: result.toString(),
-            prev: ""
+            done: 'true',
+            prevAns: result.toString()
           });
         } catch (error) {
           this.setState({
-            value: 'Error'
+            value: 'Error',
+            done: 'error'
           });
         }
         break;
+
+      // handle the case when click the ^ button
       case '**':
-        this.setState({
-          value: this.state.value + '^'
-        });
-        break;
+      case 'Ans':
+      case '*':
+      case '-':
+      case '+':
+      case '/':
+        if (this.state.value == '') {
+          if (value == '**') {
+            this.setState({
+              value: 'Ans^'
+            });
+            break;
+          }
+          if (value == 'Ans') {
+            this.setState({
+              value: 'Ans'
+            });
+            break;
+          }
+          this.setState({
+            value: 'Ans' + value
+          });
+          break;
+        }
+        ;
 
       // Any other value we just add to the current value.
       default:
         if (value == '*' && this.state.value[this.state.value.length - 1] == '*') {
+          this.setState({
+            errorFlag: true,
+            value: this.state.value + value
+          });
+          break;
+        }
+        if (value == '**') {
+          this.setState({
+            value: this.state.value + '^'
+          });
+          break;
+        }
+        if (value == 'Ans' && !['/', '*', '-', '+', '^'].includes(this.state.value[this.state.value.length - 1])) {
           this.setState({
             errorFlag: true,
             value: this.state.value + value
@@ -36642,7 +36723,17 @@ class Application extends React.Component {
     }
   }
   render() {
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, "Simple Calculator"), /*#__PURE__*/React.createElement("input", {
+    var ans = this.state.value;
+    if (this.state.done == 'true') {
+      this.state.value = '';
+    }
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", null, "Simple Calculator"), /*#__PURE__*/React.createElement("div", {
+      style: answerContainer
+    }, /*#__PURE__*/React.createElement(Answer, {
+      done: this.state.done,
+      text: ans,
+      off: this.off
+    })), /*#__PURE__*/React.createElement("input", {
       type: "text",
       value: this.state.value,
       readOnly: true
@@ -36662,7 +36753,11 @@ class Application extends React.Component {
       onClick: this.handleClick,
       value: "/",
       className: css(styles.button)
-    }, "/")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
+    }, "/"), /*#__PURE__*/React.createElement("button", {
+      onClick: this.handleClick,
+      value: "Ans",
+      className: css(styles.button)
+    }, "Ans")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
       onClick: this.handleClick,
       value: "4",
       className: css(styles.button)
@@ -36731,4 +36826,4 @@ class Application extends React.Component {
 }
 module.exports = Application;
 
-},{"aphrodite":2,"react":11}]},{},[17]);
+},{"./Answer.react":18,"aphrodite":2,"react":11}]},{},[17]);

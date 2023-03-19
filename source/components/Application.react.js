@@ -1,4 +1,5 @@
 var React = require('react');
+var Answer = require('./Answer.react')
 var {StyleSheet, css} = require('aphrodite');
 
 var commonStyle = {
@@ -15,6 +16,10 @@ var commonStyle = {
     ':hover': {
         backgroundColor: '#ddd'
     }
+}
+
+var answerContainer = {
+    position: 'relative',
 }
 
 var styles = StyleSheet.create({
@@ -34,9 +39,16 @@ class Application extends React.Component {
         this.state = {
             value: "",
             errorFlag: false,
+            done: 'false',
+            prevAns: ''
         };
 
         this.handleClick = this.handleClick.bind(this);
+        this.off = this.off.bind(this);
+    }
+
+    off() {
+        this.state.done = 'false';
     }
 
     handleClick(event) {
@@ -52,34 +64,58 @@ class Application extends React.Component {
             // The value is clear
             case 'C':
                 this.setState({
-                    value: "",
-                    errorFlag: false
+                    value: '',
+                    errorFlag: false,
+                    done: 'C',
                 });
                 break;
             // Calculate the expression
             case '=':
                 try {
-                    const result = eval(this.state.value.replace(/\^/g, '**'));
                     
-                    if(this.state.errorFlag){
+                    if(this.state.errorFlag == true){
                         throw "no multiple multiplications";
                     };
+                    const result = eval(this.state.value.replace(/\^/g, '**').replace(/Ans/g, this.state.prevAns));
+
                     this.setState({
                         value: result.toString(),
-                        prev: ""
+                        done: 'true',
+                        prevAns: result.toString()
                     });
                 } catch(error) {
                     this.setState({
                         value: 'Error', 
+                        done: 'error'
                     });
                 }
                 break;
 
+            // handle the case when click the ^ button
             case '**':
-                this.setState({
-                    value: this.state.value + '^'
-                });
-                break;
+            case 'Ans':
+            case '*':
+            case '-':
+            case '+':
+            case '/':
+                if(this.state.value == '') {
+                    if(value == '**') {
+                        this.setState({
+                            value: 'Ans^'
+                        });
+                        break;
+                    }
+                    if(value == 'Ans') {
+                        this.setState({
+                            value:'Ans'
+                        });
+                        break;
+                    }
+                    this.setState({
+                        value: 'Ans' + value
+                    });
+                    break;
+                };
 
             // Any other value we just add to the current value.
             default:
@@ -88,6 +124,19 @@ class Application extends React.Component {
                         errorFlag: true,
                         value: this.state.value + value,
                     })
+                    break;
+                }
+                if(value == '**') {
+                    this.setState({
+                        value: this.state.value + '^',
+                    });
+                    break;
+                }
+                if(value == 'Ans' && !['/', '*', '-', '+','^'].includes(this.state.value[this.state.value.length - 1])) {
+                    this.setState({
+                        errorFlag: true,
+                        value: this.state.value + value,
+                    });
                 } else {
                     this.setState({
                         value: this.state.value + value,
@@ -98,9 +147,16 @@ class Application extends React.Component {
     }
 
     render() {
+        var ans = this.state.value
+        if(this.state.done == 'true'){
+            this.state.value = '';
+        }
         return(
             <div>
                 <h1>Simple Calculator</h1>
+                <div style={answerContainer}>
+                    <Answer done={this.state.done} text={ans} off={this.off}/>
+                </div>
                 <input type="text" value={this.state.value} readOnly/>
 
                 <div>
@@ -108,6 +164,7 @@ class Application extends React.Component {
                     <button onClick={this.handleClick} value="8" className={css(styles.button)}>8</button>
                     <button onClick={this.handleClick} value="9" className={css(styles.button)}>9</button>
                     <button onClick={this.handleClick} value="/" className={css(styles.button)}>/</button>
+                    <button onClick={this.handleClick} value="Ans" className={css(styles.button)}>Ans</button>
                 </div>
 
                 <div>
