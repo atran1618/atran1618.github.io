@@ -36709,7 +36709,7 @@ class Application extends React.Component {
           });
           break;
         }
-        if (value == 'Ans' && !['/', '*', '-', '+', '^'].includes(this.state.value[this.state.value.length - 1])) {
+        if (value == 'Ans' && !['/', '*', '-', '+', '^', '('].includes(this.state.value[this.state.value.length - 1])) {
           this.setState({
             errorFlag: true,
             value: this.state.value + value
