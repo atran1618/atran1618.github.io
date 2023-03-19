@@ -73,7 +73,7 @@ class Application extends React.Component {
             case '=':
                 try {
                     
-                    if(this.state.errorFlag == true){
+                    if(this.state.errorFlag){
                         throw "no multiple multiplications";
                     };
                     const result = eval(this.state.value.replace(/\^/g, '**').replace(/Ans/g, this.state.prevAns));

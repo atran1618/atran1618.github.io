@@ -36649,7 +36649,7 @@ class Application extends React.Component {
       // Calculate the expression
       case '=':
         try {
-          if (this.state.errorFlag == true) {
+          if (this.state.errorFlag) {
             throw "no multiple multiplications";
           }
           ;
